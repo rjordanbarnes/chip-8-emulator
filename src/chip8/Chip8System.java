@@ -24,29 +24,31 @@ public class Chip8System {
 
     private byte[] key = new byte[16];
 
-    private final byte[] CHIP8_FONTSET =
+    private final int[] CHIP8_FONTSET =
             {
-                    (byte)0xF0, (byte)0x90, (byte)0x90, (byte)0x90, (byte)0xF0, // 0
-                    (byte)0x20, (byte)0x60, (byte)0x20, (byte)0x20, (byte)0x70, // 1
-                    (byte)0xF0, (byte)0x10, (byte)0xF0, (byte)0x80, (byte)0xF0, // 2
-                    (byte)0xF0, (byte)0x10, (byte)0xF0, (byte)0x10, (byte)0xF0, // 3
-                    (byte)0x90, (byte)0x90, (byte)0xF0, (byte)0x10, (byte)0x10, // 4
-                    (byte)0xF0, (byte)0x80, (byte)0xF0, (byte)0x10, (byte)0xF0, // 5
-                    (byte)0xF0, (byte)0x80, (byte)0xF0, (byte)0x90, (byte)0xF0, // 6
-                    (byte)0xF0, (byte)0x10, (byte)0x20, (byte)0x40, (byte)0x40, // 7
-                    (byte)0xF0, (byte)0x90, (byte)0xF0, (byte)0x90, (byte)0xF0, // 8
-                    (byte)0xF0, (byte)0x90, (byte)0xF0, (byte)0x10, (byte)0xF0, // 9
-                    (byte)0xF0, (byte)0x90, (byte)0xF0, (byte)0x90, (byte)0x90, // A
-                    (byte)0xE0, (byte)0x90, (byte)0xE0, (byte)0x90, (byte)0xE0, // B
-                    (byte)0xF0, (byte)0x80, (byte)0x80, (byte)0x80, (byte)0xF0, // C
-                    (byte)0xE0, (byte)0x90, (byte)0x90, (byte)0x90, (byte)0xE0, // D
-                    (byte)0xF0, (byte)0x80, (byte)0xF0, (byte)0x80, (byte)0xF0, // E
-                    (byte)0xF0, (byte)0x80, (byte)0xF0, (byte)0x80, (byte)0x80  // F
+                    0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+                    0x20, 0x60, 0x20, 0x20, 0x70, // 1
+                    0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+                    0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+                    0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+                    0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+                    0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+                    0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+                    0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+                    0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+                    0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+                    0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+                    0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+                    0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+                    0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+                    0xF0, 0x80, 0xF0, 0x80, 0x80  // F
             };
 
     public Chip8System() {
         // Load font set
-        System.arraycopy(CHIP8_FONTSET, 0, memory, 0, CHIP8_FONTSET.length);
+        for (int i = 0; i < CHIP8_FONTSET.length; i++) {
+            memory[i] = (byte) CHIP8_FONTSET[i];
+        }
     }
 
     public void loadGame(String game) throws IOException {
@@ -77,11 +79,11 @@ public class Chip8System {
     }
 
     public void emulateCycle() {
-        int X;
-        int Y;
-
         // Fetch Opcode
         opcode = (char)((memory[programCounter] << 8) | (memory[programCounter + 1] & 0x00FF));
+
+        char X = (char) ((opcode & 0x0F00) >>> 8);
+        char Y = (char) ((opcode & 0x00F0) >>> 4);
 
         // Decode Opcode
         switch (opcode & 0xF000) {
@@ -120,8 +122,6 @@ public class Chip8System {
                 break;
 
             case 0x3000: // 0x3XNN: Skips the next instruction if VX equals NN.
-                X = (opcode & 0x0F00) >>> 8;
-
                 if (registers[X] == (opcode & 0x00FF))
                     programCounter += 4;
                 else
@@ -129,15 +129,21 @@ public class Chip8System {
 
                 break;
 
+            case 0x4000: // 0x4XNN: Skips the next instruction if VX doesn't equal NN.
+                if (registers[X] != (opcode & 0x00FF))
+                    programCounter += 4;
+                else
+                    programCounter += 2;
+
+                break;
+
             case 0x6000: // 0x6XNN: Sets VX to NN.
-                X = (opcode & 0x0F00) >>> 8;
                 registers[X] = (byte) (opcode & 0x00FF);
 
                 programCounter += 2;
                 break;
 
             case 0x7000: // 0x7XNN: Adds NN to VX.
-                X = (opcode & 0x0F00) >>> 8;
                 registers[X] += (opcode & 0x00FF);
 
                 programCounter += 2;
@@ -145,23 +151,34 @@ public class Chip8System {
 
             case 0x8000:
                 switch (opcode & 0x000F) {
-                    case 0x0002: // 0x8XY2: Sets VX to VX and VY.
-                        X = (opcode & 0x0F00) >>> 8;
-                        Y = (opcode & 0x00F0) >>> 4;
+                    case 0x0000: // 0x8XY0: Sets VX to the value of VY.
+                        registers[X] = registers[Y];
 
+                        programCounter += 2;
+                        break;
+
+                    case 0x0002: // 0x8XY2: Sets VX to VX and VY.
                         registers[X] &= registers[Y];
+                        programCounter += 2;
                         break;
 
                     case 0x0004: // 0x8XY4: Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't.
-                        X = (opcode & 0x0F00) >>> 8;
-                        Y = (opcode & 0x00F0) >>> 4;
-
-                        if (registers[Y] > (0xFF - registers[X]))
+                        if (registers[Y] + registers[X] > 0xFF)
                             registers[0xF] = 1; // carry
                         else
                             registers[0xF] = 0;
 
                         registers[X] += registers[Y];
+                        programCounter += 2;
+                        break;
+
+                    case 0x0005: // 0x8XY5: VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
+                        if (registers[X] < registers[Y])
+                            registers[0xF] = 1; // borrow
+                        else
+                            registers[0xF] = 0;
+
+                        registers[X] -= registers[Y];
                         programCounter += 2;
                         break;
 
@@ -178,22 +195,19 @@ public class Chip8System {
 
             case 0xC000: // 0xCXNN: Sets VX to the result of a bitwise and operation on a random number (Typically: 0 to 255) and NN.
                 Random r = new Random();
-                X = (opcode & 0x0F00) >>> 8;
 
                 registers[X] = (byte) (r.nextInt(256) & (opcode & 0x00FF));
                 programCounter += 2;
                 break;
 
             case 0xD000: // 0xDXYN: Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels.
-                X = (opcode & 0x0F00) >>> 8;
-                Y = (opcode & 0x00F0) >>> 4;
-                int height = opcode & 0x000F;
-                int pixel;
+                char height = (char) (opcode & 0x000F);
+                char pixel;
 
                 registers[0xF] = 0; // Clear carry
 
                 for (int yline = 0; yline < height; yline++) {
-                    pixel = memory[indexRegister + yline];
+                    pixel = (char) (memory[indexRegister + yline]);
 
                     for (int xline = 0; xline < 8; xline++) { // Pixels are 8 wide
                         if ((pixel & (0x80 >>> xline)) != 0) {
@@ -213,8 +227,6 @@ public class Chip8System {
             case 0xE000:
                 switch(opcode & 0x00FF) {
                     case 0x009E: // 0xEX9E: Skips the next instruction if the key stored in VX is pressed.
-                        X = (opcode & 0x0F00) >>> 8;
-
                         if (key[registers[X]] != 0)
                             programCounter += 4;
                         else
@@ -223,8 +235,6 @@ public class Chip8System {
                         break;
 
                     case 0x00A1: // 0xEXA1: Skips the next instruction if the key stored in VX isn't pressed.
-                        X = (opcode & 0x0F00) >>> 8;
-
                         if (key[registers[X]] == 0)
                             programCounter += 4;
                         else
@@ -240,32 +250,30 @@ public class Chip8System {
             case 0xF000:
                 switch (opcode & 0x00FF) {
                     case 0x0007: // 0xFX07: Sets VX to the value of the delay timer.
-                        X = (opcode & 0x0F00) >>> 8;
-
                         registers[X] = delay_timer;
 
                         programCounter += 2;
                         break;
 
                     case 0x0015: // 0xFX15: Sets the delay timer to VX.
-                        X = (opcode & 0x0F00) >>> 8;
-
                         delay_timer = registers[X];
 
                         programCounter += 2;
                         break;
 
-                    case 0x0029: // 0xFX29: Sets I to the location of the sprite for the character in VX.
-                        X = (opcode & 0x0F00) >>> 8;
+                    case 0x0018: // 0xFX18: Sets the sound timer to VX.
+                        sound_timer = registers[X];
 
+                        programCounter += 2;
+                        break;
+
+                    case 0x0029: // 0xFX29: Sets I to the location of the sprite for the character in VX.
                         indexRegister = (char) (registers[X] * 5); // Sprites 5 bytes long
 
                         programCounter += 2;
                         break;
 
                     case 0x0033: // 0xFX33: Stores the binary-coded decimal representation of VX
-                        X = (opcode & 0x0F00) >>> 8;
-
                         memory[indexRegister] = (byte) (registers[X] / 100);
                         memory[indexRegister + 1] = (byte) ((registers[X] / 10) % 10);
                         memory[indexRegister + 2] = (byte) ((registers[X] % 100) % 10);
@@ -274,8 +282,6 @@ public class Chip8System {
                         break;
 
                     case 0x0065: // 0xFX65: Fills V0 to VX (including VX) with values from memory starting at address I.
-                        X = (opcode & 0x0F00) >>> 8;
-
                         for (int i = 0; i <= X; i++) {
                             registers[i] = memory[indexRegister];
                             indexRegister++;
