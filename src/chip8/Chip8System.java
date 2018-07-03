@@ -91,7 +91,7 @@ public class Chip8System {
             case 0x0000:
                 switch (opcode & 0x000F) {
                     case 0x0000: // 0x00E0: Clears screen
-                        for (int i = 0; i < memory.length; i++) {
+                        for (int i = 0; i < gfx.length; i++) {
                             gfx[i] = 0;
                         }
 

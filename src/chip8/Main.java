@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 public class Main extends Application {
     private final int WIDTH = 64;
     private final int HEIGHT = 32;
+    private final int SCALE = 6;
     private final WritableImage SCREEN = new WritableImage(WIDTH, HEIGHT);
 
     private final int BLACK = 0xFF000000;
@@ -57,6 +58,9 @@ public class Main extends Application {
 
     private void setupGraphics(Stage mainStage) {
         ImageView imageView = new ImageView(SCREEN);
+        imageView.setPreserveRatio(true);
+        imageView.setFitWidth(WIDTH * SCALE);
+        imageView.setFitHeight(HEIGHT * SCALE);
         StackPane root = new StackPane(imageView);
         mainStage.setScene(new Scene(root, 400, 400));
         mainStage.setTitle("CHIP-8");
