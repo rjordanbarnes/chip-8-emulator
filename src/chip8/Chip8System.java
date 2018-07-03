@@ -144,7 +144,7 @@ public class Chip8System {
                 break;
 
             case 0x7000: // 0x7XNN: Adds NN to VX.
-                registers[X] += (opcode & 0x00FF);
+                registers[X] = (byte) ((registers[X] + (opcode & 0x00FF)) & 0xFF);
 
                 programCounter += 2;
                 break;
@@ -169,16 +169,18 @@ public class Chip8System {
                             registers[0xF] = 0;
 
                         registers[X] += registers[Y];
+                        registers[X] &= 0xFF;
                         programCounter += 2;
                         break;
 
                     case 0x0005: // 0x8XY5: VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
                         if (registers[X] < registers[Y])
-                            registers[0xF] = 1; // borrow
+                            registers[0xF] = 0; // borrow
                         else
-                            registers[0xF] = 0;
+                            registers[0xF] = 1;
 
                         registers[X] -= registers[Y];
+                        registers[X] &= 0xFF;
                         programCounter += 2;
                         break;
 
@@ -250,7 +252,7 @@ public class Chip8System {
             case 0xF000:
                 switch (opcode & 0x00FF) {
                     case 0x0007: // 0xFX07: Sets VX to the value of the delay timer.
-                        registers[X] = delay_timer;
+                        registers[X] = (byte) (delay_timer & 0xFF);
 
                         programCounter += 2;
                         break;
@@ -283,10 +285,10 @@ public class Chip8System {
 
                     case 0x0065: // 0xFX65: Fills V0 to VX (including VX) with values from memory starting at address I.
                         for (int i = 0; i <= X; i++) {
-                            registers[i] = memory[indexRegister];
-                            indexRegister++;
+                            registers[i] = memory[indexRegister + i];
                         }
 
+                        indexRegister = (char) ((indexRegister + X + 1) & 0xFFFF);
                         programCounter+= 2;
                         break;
 
