@@ -144,7 +144,7 @@ public class Chip8System {
                 break;
 
             case 0x7000: // 0x7XNN: Adds NN to VX.
-                registers[X] = (byte) ((registers[X] + (opcode & 0x00FF)) & 0xFF);
+                registers[X] = (byte) (registers[X] + (opcode & 0x00FF));
 
                 programCounter += 2;
                 break;
@@ -285,7 +285,7 @@ public class Chip8System {
 
                     case 0x0065: // 0xFX65: Fills V0 to VX (including VX) with values from memory starting at address I.
                         for (int i = 0; i <= X; i++) {
-                            registers[i] = memory[indexRegister + i];
+                            registers[i] = (byte) (memory[indexRegister + i] & 0xFF);
                         }
 
                         indexRegister = (char) ((indexRegister + X + 1) & 0xFFFF);
