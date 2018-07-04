@@ -81,7 +81,6 @@ public class Chip8System {
         this.keys = keys;
     }
 
-
     public int getPixel(int x, int y) {
         return gfx[(x + WIDTH * y) % gfx.length];
     }
@@ -113,88 +112,110 @@ public class Chip8System {
             case 0x0000:
                 switch (opcode & 0x000F) {
                     case 0x0000: // 0x00E0: Clears screen
+                        System.out.println(String.format("0x%04x: clears screen", (int) opcode));
+
                         for (int i = 0; i < gfx.length; i++) {
                             gfx[i] = 0;
                         }
 
                         programCounter += 2;
                         drawFlag = true;
-                        System.out.println(String.format("0x%04x", (int) opcode) + ": clears screen");
                         break;
 
                     case 0x000E: // 0x00EE: Returns from subroutine
+                        System.out.println(String.format("0x%04x: returns from subroutine", (int) opcode));
+
                         stackPointer--;
                         programCounter = stack[stackPointer];
                         programCounter += 2;
-                        System.out.println(String.format("0x%04x", (int) opcode) + ": returns from subroutine");
                         break;
 
                     default:
-                        System.out.println("Unknown opcode: " + String.format("0x%04x", (int) opcode));
+                        System.err.println(String.format("0x%04x: unknown opcode", (int) opcode));
                 }
                 break;
 
             case 0x1000: // 0x1NNN: Jumps to address NNN.
+                System.out.println(String.format("0x%04x: jumps to address 0x%04x", (int) opcode,  opcode & 0x0FFF));
+
                 programCounter = (char) (opcode & 0x0FFF);
-                System.out.println(String.format("0x%04x", (int) opcode) + ": jumps to address " + String.format("0x%04x", opcode & 0x0FFF));
                 break;
 
             case 0x2000: // 0x2NNN: Calls subroutine at NNN.
+                System.out.println(String.format("0x%04x: calls subroutine at 0x%04x", (int) opcode, opcode & 0x0FFF));
+
                 stack[stackPointer] = programCounter;
                 stackPointer++;
 
                 programCounter = (char) (opcode & 0x0FFF);
-                System.out.println(String.format("0x%04x", (int) opcode) + ": calls subroutine at " + String.format("0x%04x", opcode & 0x0FFF));
                 break;
 
             case 0x3000: // 0x3XNN: Skips the next instruction if VX equals NN.
+                System.out.println(String.format("0x%04x: skips the next instruction if value of register[%d] (%d) equals %d", (int) opcode, (int) X, registers[X] , opcode & 0x00FF));
+
                 if (registers[X] == (opcode & 0x00FF))
                     programCounter += 4;
                 else
                     programCounter += 2;
 
-                System.out.println(String.format("0x%04x", (int) opcode) + ": skips the next instruction if " + String.format("0x%04x", registers[X]) + " == " + String.format("0x%04x", opcode & 0x00FF));
                 break;
 
             case 0x4000: // 0x4XNN: Skips the next instruction if VX doesn't equal NN.
+                System.out.println(String.format("0x%04x: skips the next instruction if value of register[%d] (%d) doesn't equal %d", (int) opcode, (int) X, registers[X] , opcode & 0x00FF));
+
                 if (registers[X] != (opcode & 0x00FF))
                     programCounter += 4;
                 else
                     programCounter += 2;
 
-                System.out.println(String.format("0x%04x", (int) opcode) + ": skips the next instruction if " + String.format("0x%04x", registers[X]) + " != " + String.format("0x%04x", opcode & 0x00FF));
                 break;
 
             case 0x6000: // 0x6XNN: Sets VX to NN.
+                System.out.println(String.format("0x%04x: sets register[%d] to %d", (int) opcode, (short) X, opcode & 0x00FF));
+
                 registers[X] = (byte) (opcode & 0x00FF);
 
                 programCounter += 2;
-                System.out.println(String.format("0x%04x", (int) opcode) + ": sets register " + String.format("0x%04x", (short)X) + " to " + String.format("0x%04x", opcode & 0x00FF));
+
                 break;
 
             case 0x7000: // 0x7XNN: Adds NN to VX.
+                System.out.println(String.format("0x%04x: adds %d to register[%d]", (int) opcode, opcode & 0x00FF, (short) X));
+
                 registers[X] += (opcode & 0x00FF);
 
                 programCounter += 2;
-                System.out.println(String.format("0x%04x", (int) opcode) + ": adds " + String.format("0x%04x", opcode & 0x00FF) + " to register " + String.format("0x%04x", (short)X));
                 break;
 
             case 0x8000:
                 switch (opcode & 0x000F) {
                     case 0x0000: // 0x8XY0: Sets VX to the value of VY.
+                        System.out.println(String.format("0x%04x: sets register[%d] to value of register[%d] (%d)", (int) opcode, (short)X, (short)Y, registers[Y]));
+
                         registers[X] = registers[Y];
 
                         programCounter += 2;
-                        System.out.println(String.format("0x%04x", (int) opcode) + ": sets register " + String.format("0x%04x", (short)X) + " to value of register " + String.format("0x%04x", (short)Y));
                         break;
 
                     case 0x0002: // 0x8XY2: Sets VX to VX and VY.
+                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] & register[%d] (%d)", (int) opcode, (short)X, (short)X, (short)Y, registers[X] & registers[Y]));
+
                         registers[X] &= registers[Y];
+
                         programCounter += 2;
-                        System.out.println(String.format("0x%04x", (int) opcode) + ": sets register " + String.format("0x%04x", (short)X) + " to value of register " + String.format("0x%04x", (short)X) + " & " + " register " + String.format("0x%04x", (short)Y));
+                        break;
+
+                    case 0x0003: // 0x8XY3: Sets VX to VX xor VY.
+                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] ^ register[%d] (%d)", (int) opcode, (short)X, (short)X, (short)Y, registers[X] ^ registers[Y]));
+
+                        registers[X] ^= registers[Y];
+
+                        programCounter += 2;
                         break;
 
                     case 0x0004: // 0x8XY4: Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't.
+                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] + register[%d] (%d)", (int) opcode, (short)X, (short)X, (short)Y, registers[X] + registers[Y]));
+
                         if (registers[Y] + registers[X] > 0xFF)
                             registers[0xF] = 1; // carry
                         else
@@ -203,10 +224,11 @@ public class Chip8System {
                         registers[X] += registers[Y];
                         registers[X] &= 0xFF;
                         programCounter += 2;
-                        System.out.println(String.format("0x%04x", (int) opcode) + ": adds value of register " + String.format("0x%04x", (short) Y) + " to register " + String.format("0x%04x", (short)X));
                         break;
 
                     case 0x0005: // 0x8XY5: VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
+                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] - register[%d] (%d)", (int) opcode, (short)X, (short)X, (short)Y, registers[X] - registers[Y]));
+
                         if (registers[X] < registers[Y])
                             registers[0xF] = 0; // borrow
                         else
@@ -215,22 +237,34 @@ public class Chip8System {
                         registers[X] -= registers[Y];
                         registers[X] &= 0xFF;
                         programCounter += 2;
-                        System.out.println(String.format("0x%04x", (int) opcode) + ": subtracts value of register " + String.format("0x%04x", (short)Y) + " from register " + String.format("0x%04x", (short)X));
+                        break;
+
+                    case 0x0006: // 0x8XY6: Shifts VY right by one and stores the result to VX (VY remains unchanged). VF is set to the value of the least significant bit of VY before the shift.
+                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] >>> 1 (0x%02x)", (int) opcode, (short)X, (short)Y, registers[Y] >>> 1));
+
+                        registers[0xF] = (byte) (registers[Y] & 0x1); // Sets VF to LSB of VY
+
+                        registers[X] = (byte) (registers[Y] >>> 1);
+
+                        programCounter += 2;
                         break;
 
                     default:
-                        System.out.println("Unknown opcode: " + String.format("0x%04x", (int) opcode));
+                        System.err.println(String.format("0x%04x: unknown opcode", (int) opcode));
                 }
                 break;
 
             case 0xA000: // 0xANNN: Sets I to the address NNN.
+                System.out.println(String.format("0x%04x: sets instruction pointer to 0x%04x", (int) opcode, opcode & 0x0FFF));
+
                 indexRegister = (char) (opcode & 0x0FFF);
 
                 programCounter += 2;
-                System.out.println(String.format("0x%04x", (int) opcode) + ": sets instruction pointer to " + String.format("0x%04x", opcode & 0x0FFF));
                 break;
 
             case 0xC000: // 0xCXNN: Sets VX to the result of a bitwise and operation on a random number (Typically: 0 to 255) and NN.
+                System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] & (random number)", (int) opcode, (short)X, (short)X));
+
                 Random r = new Random();
 
                 registers[X] = (byte) (r.nextInt(256) & (opcode & 0x00FF));
@@ -238,17 +272,19 @@ public class Chip8System {
                 break;
 
             case 0xD000: // 0xDXYN: Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels.
+                System.out.println(String.format("0x%04x: draws a sprite at coordinate (%d, %d) that has a width of 8 pixels and a height of %d pixels", (int) opcode, registers[X], registers[Y], (opcode & 0x000F) * 8));
+
                 int xCoord = registers[X] * 8;
                 int yCoord = registers[Y] * 8;
                 int verticalBoxes = opcode & 0x000F;
 
                 registers[0xF] = 0; // Clear carry
 
-                // For each vertical box needed, draw four boxes horizontally if sprite requires
+                // For each vertical box needed, draw boxes horizontally if sprite requires
                 for (int i = 0; i < verticalBoxes; i++) {
                     int scaledYCoord = yCoord + 8 * i;
 
-                    for (int j = 0; j < 4; j++) { // For each horizontal box
+                    for (int j = 0; j < 8; j++) { // For each horizontal box
                         int scaledXCoord = xCoord + 8 * j;
 
                         if ((memory[indexRegister + i] & (0x80 >>> j)) != 0) { // If sprite says to draw this box, draw it
@@ -263,12 +299,13 @@ public class Chip8System {
                 drawFlag = true;
                 programCounter += 2;
 
-                System.out.println(String.format("0x%04x", (int) opcode) + ": draws a sprite at coordinate (" + registers[X] + ", " + registers[Y] + ") that has a width of 8 pixels and a height of " + (short) verticalBoxes + " pixels");
                 break;
 
             case 0xE000:
                 switch(opcode & 0x00FF) {
                     case 0x009E: // 0xEX9E: Skips the next instruction if the key stored in VX is pressed.
+                        System.out.println(String.format("0x%04x: skips the next instruction if the key in register[%d] is pressed", (int) opcode, (short)X));
+
                         if (keys[registers[X]])
                             programCounter += 4;
                         else
@@ -277,6 +314,8 @@ public class Chip8System {
                         break;
 
                     case 0x00A1: // 0xEXA1: Skips the next instruction if the key stored in VX isn't pressed.
+                        System.out.println(String.format("0x%04x: skips the next instruction if the key in register[%d] isn't pressed", (int) opcode, (short)X));
+
                         if (!keys[registers[X]])
                             programCounter += 4;
                         else
@@ -285,37 +324,55 @@ public class Chip8System {
                         break;
 
                     default:
-                        System.out.println("Unknown opcode: " + String.format("0x%04x", (int) opcode));
+                        System.err.println(String.format("0x%04x: unknown opcode", (int) opcode));
                 }
                 break;
 
             case 0xF000:
                 switch (opcode & 0x00FF) {
                     case 0x0007: // 0xFX07: Sets VX to the value of the delay timer.
+                        System.out.println(String.format("0x%04x: sets register[%d] to the value of the delay timer (%d)", (int) opcode, (short)X, delay_timer));
+
                         registers[X] = (byte) (delay_timer & 0xFF);
 
                         programCounter += 2;
                         break;
 
                     case 0x0015: // 0xFX15: Sets the delay timer to VX.
+                        System.out.println(String.format("0x%04x: sets the delay timer to the value of register[%d] (%d)", (int) opcode, (short)X, registers[X]));
+
                         delay_timer = registers[X];
 
                         programCounter += 2;
                         break;
 
                     case 0x0018: // 0xFX18: Sets the sound timer to VX.
+                        System.out.println(String.format("0x%04x: sets the sound timer to the value of register[%d] (%d)", (int) opcode, (short)X, registers[X]));
+
                         sound_timer = registers[X];
 
                         programCounter += 2;
                         break;
 
+                    case 0x001E: // 0xFX1E: Adds VX to I.
+                        System.out.println(String.format("0x%04x: adds the value of register[%d] (%d) to the instruction pointer", (int) opcode, (short)X, registers[X]));
+
+                        indexRegister += registers[X];
+
+                        programCounter += 2;
+                        break;
+
                     case 0x0029: // 0xFX29: Sets I to the location of the sprite for the character in VX.
+                        System.out.println(String.format("0x%04x: sets the instruction pointer to the sprite located in register[%d] (0x%02x)", (int) opcode, (short)X, registers[X]));
+
                         indexRegister = (char) (registers[X] * 5); // Sprites 5 bytes long
 
                         programCounter += 2;
                         break;
 
                     case 0x0033: // 0xFX33: Stores the binary-coded decimal representation of VX
+                        System.out.println(String.format("0x%04x: stores the binary-coded decimal representation of register[%d] (%d)", (int) opcode, (short)X, registers[X]));
+
                         memory[indexRegister] = (byte) (registers[X] / 100);
                         memory[indexRegister + 1] = (byte) ((registers[X] / 10) % 10);
                         memory[indexRegister + 2] = (byte) ((registers[X] % 100) % 10);
@@ -324,6 +381,8 @@ public class Chip8System {
                         break;
 
                     case 0x0065: // 0xFX65: Fills V0 to VX (including VX) with values from memory starting at address I.
+                        System.out.println(String.format("0x%04x: fills register[0] to register[%d] with values starting at memory[indexRegister]", (int) opcode, (short)X));
+
                         for (int i = 0; i <= X; i++) {
                             registers[i] = (byte) (memory[indexRegister + i] & 0xFF);
                         }
@@ -333,12 +392,12 @@ public class Chip8System {
                         break;
 
                     default:
-                        System.out.println("Unknown opcode: " + String.format("0x%04x", (int) opcode));
+                        System.err.println(String.format("0x%04x: unknown opcode", (int) opcode));
                 }
                 break;
 
             default:
-                System.out.println("Unknown opcode: " + String.format("0x%04x", (int) opcode));
+                System.err.println(String.format("0x%04x: unknown opcode", (int) opcode));
         }
 
         // Update timers

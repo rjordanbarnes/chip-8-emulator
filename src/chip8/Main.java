@@ -1,7 +1,6 @@
 package chip8;
 
 import javafx.animation.Animation;
-import javafx.animation.AnimationTimer;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
@@ -19,9 +18,10 @@ import java.nio.ByteBuffer;
 public class Main extends Application {
     private final int WIDTH = 512;
     private final int HEIGHT = 256;
-    private final int CYCLES_PER_FRAME = 7;
-    private final int FRAMES_PER_SECOND = 60;
+    private final int CYCLES_PER_FRAME = 1;
+    private final int FRAMES_PER_SECOND = 1;
     private final int CYCLES_PER_SECOND = CYCLES_PER_FRAME * FRAMES_PER_SECOND;
+
     private final WritableImage SCREEN = new WritableImage(WIDTH, HEIGHT);
     private Scene mainScene;
     private boolean[] keys = new boolean[16];
@@ -43,7 +43,7 @@ public class Main extends Application {
         Chip8System chip8System = new Chip8System();
 
         try {
-            chip8System.loadGame("./GAMES/pong");
+            chip8System.loadGame("./GAMES/15puzzle");
         } catch (IOException e) {
             System.err.println("Caught IOException: " + e.getMessage());
         }
