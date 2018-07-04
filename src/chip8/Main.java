@@ -13,10 +13,11 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class Main extends Application {
-    private final int WIDTH = 64;
-    private final int HEIGHT = 32;
-    private final int SCALE = 6;
+    private final int WIDTH = 512;
+    private final int HEIGHT = 256;
     private final WritableImage SCREEN = new WritableImage(WIDTH, HEIGHT);
+    private Scene mainScene;
+    private boolean[] keys = new boolean[16];
 
     private final int BLACK = 0xFF000000;
     private final int WHITE = 0xFFFFFFFF;
@@ -29,7 +30,7 @@ public class Main extends Application {
 
     private void startEmulation(Stage mainStage) {
         setupGraphics(mainStage);
-//        setupInput();
+        setupInput();
 
         // Initializes a new Chip8 system
         Chip8System chip8System = new Chip8System();
@@ -50,19 +51,51 @@ public class Main extends Application {
                 if (chip8System.getDrawFlag())
                     drawGraphics(chip8System);
 
-                chip8System.setKeys();
+                chip8System.setKeys(keys);
             }
 
         }.start();
     }
 
+    private void setupInput() {
+        mainScene.setOnKeyPressed(event -> {
+            String codeString = event.getCode().toString();
+            toggleKey(codeString, true);
+        });
+
+        mainScene.setOnKeyReleased(event -> {
+            String codeString = event.getCode().toString();
+            toggleKey(codeString, false);
+        });
+    }
+
+    private void toggleKey(String codeString, Boolean isPressed) {
+        switch (codeString) {
+            case "X": keys[0] = isPressed; break;
+            case "DIGIT1": keys[1] = isPressed; break;
+            case "DIGIT2": keys[2] = isPressed; break;
+            case "DIGIT3": keys[3] = isPressed; break;
+            case "Q": keys[4] = isPressed; break;
+            case "W": keys[5] = isPressed; break;
+            case "E": keys[6] = isPressed; break;
+            case "A": keys[7] = isPressed; break;
+            case "S": keys[8] = isPressed; break;
+            case "D": keys[9] = isPressed; break;
+            case "Z": keys[10] = isPressed; break;
+            case "C": keys[11] = isPressed; break;
+            case "DIGIT4": keys[12] = isPressed; break;
+            case "R": keys[13] = isPressed; break;
+            case "F": keys[14] = isPressed; break;
+            case "V": keys[15] = isPressed; break;
+            default: break;
+        }
+    }
+
     private void setupGraphics(Stage mainStage) {
         ImageView imageView = new ImageView(SCREEN);
-        imageView.setPreserveRatio(true);
-        imageView.setFitWidth(WIDTH * SCALE);
-        imageView.setFitHeight(HEIGHT * SCALE);
         StackPane root = new StackPane(imageView);
-        mainStage.setScene(new Scene(root, 400, 400));
+        mainScene = new Scene(root, WIDTH, HEIGHT);
+        mainStage.setScene(mainScene);
         mainStage.setTitle("CHIP-8");
         mainStage.setResizable(false);
         mainStage.show();
