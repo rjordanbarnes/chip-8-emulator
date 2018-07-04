@@ -37,13 +37,14 @@ public class Main extends Application {
 
     private void startEmulation(Stage mainStage) {
         setupGraphics(mainStage);
-        setupInput();
 
         // Initializes a new Chip8 system
         Chip8System chip8System = new Chip8System();
 
+        setupInput(chip8System);
+
         try {
-            chip8System.loadGame("./GAMES/15puzzle");
+            chip8System.loadGame("./GAMES/wall");
         } catch (IOException e) {
             System.err.println("Caught IOException: " + e.getMessage());
         }
@@ -62,38 +63,46 @@ public class Main extends Application {
         timeline.play();
     }
 
-    private void setupInput() {
+    private void setupInput(Chip8System chip8System) {
         mainScene.setOnKeyPressed(event -> {
             String codeString = event.getCode().toString();
-            toggleKey(codeString, true);
+            byte keyPad = convertKeyPressToKeyPad(codeString);
+            chip8System.setLastKeyPressed(keyPad);
+            toggleKey(keyPad, true);
         });
 
         mainScene.setOnKeyReleased(event -> {
             String codeString = event.getCode().toString();
-            toggleKey(codeString, false);
+            byte keyPad = convertKeyPressToKeyPad(codeString);
+            toggleKey(keyPad, false);
         });
     }
 
-    private void toggleKey(String codeString, Boolean isPressed) {
+    private byte convertKeyPressToKeyPad(String codeString) {
         switch (codeString) {
-            case "X": keys[0] = isPressed; break;
-            case "DIGIT1": keys[1] = isPressed; break;
-            case "DIGIT2": keys[2] = isPressed; break;
-            case "DIGIT3": keys[3] = isPressed; break;
-            case "Q": keys[4] = isPressed; break;
-            case "W": keys[5] = isPressed; break;
-            case "E": keys[6] = isPressed; break;
-            case "A": keys[7] = isPressed; break;
-            case "S": keys[8] = isPressed; break;
-            case "D": keys[9] = isPressed; break;
-            case "Z": keys[10] = isPressed; break;
-            case "C": keys[11] = isPressed; break;
-            case "DIGIT4": keys[12] = isPressed; break;
-            case "R": keys[13] = isPressed; break;
-            case "F": keys[14] = isPressed; break;
-            case "V": keys[15] = isPressed; break;
-            default: break;
+            case "X": return 0;
+            case "DIGIT1": return 1;
+            case "DIGIT2": return 2;
+            case "DIGIT3": return 3;
+            case "Q": return 4;
+            case "W": return 5;
+            case "E": return 6;
+            case "A": return 7;
+            case "S": return 8;
+            case "D": return 9;
+            case "Z": return 10;
+            case "C": return 11;
+            case "DIGIT4": return 12;
+            case "R": return 13;
+            case "F": return 14;
+            case "V": return 15;
         }
+
+        return -1;
+    }
+
+    private void toggleKey(byte keyPad, Boolean isPressed) {
+        keys[keyPad] = isPressed;
     }
 
     private void setupGraphics(Stage mainStage) {

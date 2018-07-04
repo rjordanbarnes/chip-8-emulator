@@ -26,6 +26,7 @@ public class Chip8System {
     private byte sound_timer = 60;
 
     private boolean[] keys;
+    private byte lastKeyPressed = -1;
 
     private final int[] CHIP8_FONTSET =
             {
@@ -79,6 +80,21 @@ public class Chip8System {
 
     public void setKeys(boolean[] keys) {
         this.keys = keys;
+    }
+
+    public void setLastKeyPressed(byte key) {
+        lastKeyPressed = key;
+    }
+
+    public int getNumberOfKeysPressed() {
+        int keysPressed = 0;
+
+        for (int i = 0; i < keys.length; i++) {
+            if (keys[i])
+                keysPressed++;
+        }
+
+        return keysPressed;
     }
 
     public int getPixel(int x, int y) {
@@ -193,6 +209,14 @@ public class Chip8System {
                         System.out.println(String.format("0x%04x: sets register[%d] to value of register[%d] (%d)", (int) opcode, (short)X, (short)Y, registers[Y]));
 
                         registers[X] = registers[Y];
+
+                        programCounter += 2;
+                        break;
+
+                    case 0x0001: // 0x8XY1: Sets VX to VX or VY.
+                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] | register[%d] (%d)", (int) opcode, (short)X, (short)X, (short)Y, registers[X] | registers[Y]));
+
+                        registers[X] |= registers[Y];
 
                         programCounter += 2;
                         break;
@@ -346,6 +370,16 @@ public class Chip8System {
                         registers[X] = (byte) (delay_timer & 0xFF);
 
                         programCounter += 2;
+                        break;
+
+                    case 0x000A: //0xFX0A: A key press is awaited, and then stored in VX.
+                        System.out.println(String.format("0x%04x: waits for a key press and stores it in register[%d]", (int) opcode, (short)X));
+
+                        if (getNumberOfKeysPressed() > 0) {
+                            registers[X] = lastKeyPressed;
+                            programCounter += 2;
+                        }
+
                         break;
 
                     case 0x0015: // 0xFX15: Sets the delay timer to VX.
