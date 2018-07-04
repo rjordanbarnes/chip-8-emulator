@@ -1,6 +1,9 @@
 package chip8;
 
+import javafx.animation.Animation;
 import javafx.animation.AnimationTimer;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.image.ImageView;
@@ -8,6 +11,7 @@ import javafx.scene.image.PixelFormat;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -15,6 +19,9 @@ import java.nio.ByteBuffer;
 public class Main extends Application {
     private final int WIDTH = 512;
     private final int HEIGHT = 256;
+    private final int CYCLES_PER_FRAME = 7;
+    private final int FRAMES_PER_SECOND = 60;
+    private final int CYCLES_PER_SECOND = CYCLES_PER_FRAME * FRAMES_PER_SECOND;
     private final WritableImage SCREEN = new WritableImage(WIDTH, HEIGHT);
     private Scene mainScene;
     private boolean[] keys = new boolean[16];
@@ -41,20 +48,18 @@ public class Main extends Application {
             System.err.println("Caught IOException: " + e.getMessage());
         }
 
-        // Game Loop pulses at 60 Hz (60 FPS)
-        new AnimationTimer() {
+        // Game Loop
+        Timeline timeline = new Timeline (new KeyFrame(Duration.seconds(1.0 / CYCLES_PER_SECOND), event -> {
+            chip8System.emulateCycle();
 
-            public void handle(long now) {
+            if (chip8System.getDrawFlag())
+                drawGraphics(chip8System);
 
-                chip8System.emulateCycle();
+            chip8System.setKeys(keys);
+        }));
 
-                if (chip8System.getDrawFlag())
-                    drawGraphics(chip8System);
-
-                chip8System.setKeys(keys);
-            }
-
-        }.start();
+        timeline.setCycleCount(Animation.INDEFINITE);
+        timeline.play();
     }
 
     private void setupInput() {

@@ -83,7 +83,7 @@ public class Chip8System {
 
 
     public int getPixel(int x, int y) {
-        return gfx[x + WIDTH * y];
+        return gfx[(x + WIDTH * y) % gfx.length];
     }
 
     // Draws an 8 x 8 box at coordinate (x, y)
@@ -97,7 +97,7 @@ public class Chip8System {
 
     // Draws a single pixel at coordinate (x, y)
     public void drawPixel(int x, int y) {
-        gfx[x + WIDTH * y] ^= 1;
+        gfx[(x + WIDTH * y)  % gfx.length] ^= 1;
     }
 
     public void emulateCycle() {
@@ -248,7 +248,7 @@ public class Chip8System {
                 for (int i = 0; i < verticalBoxes; i++) {
                     int scaledYCoord = yCoord + 8 * i;
 
-                    for (int j = 0; j < 4; j++) {
+                    for (int j = 0; j < 4; j++) { // For each horizontal box
                         int scaledXCoord = xCoord + 8 * j;
 
                         if ((memory[indexRegister + i] & (0x80 >>> j)) != 0) { // If sprite says to draw this box, draw it
