@@ -186,6 +186,16 @@ public class Chip8System {
 
                 break;
 
+            case 0x5000: // 0x5XY0: Skips the next instruction if VX equals VY.
+                System.out.println(String.format("0x%04x: skips the next instruction if value of register[%d] (%d) equals value of register[%d] (%d)", (int) opcode, (int) X, registers[X] , (int) Y, registers[Y]));
+
+                if (registers[X] == registers[Y])
+                    programCounter += 4;
+                else
+                    programCounter += 2;
+
+                break;
+
             case 0x6000: // 0x6XNN: Sets VX to NN.
                 System.out.println(String.format("0x%04x: sets register[%d] to %d", (int) opcode, (short) X, opcode & 0x00FF));
 
@@ -273,13 +283,27 @@ public class Chip8System {
                         programCounter += 2;
                         break;
 
+                    case 0x0007: // 0x8XY7: Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
+                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] - register[%d] (%d)", (int) opcode, (short)X, (short)Y, (short)X, registers[Y] - registers[X]));
+
+                        if (registers[X] > registers[Y])
+                            registers[0xF] = 0; // borrow
+                        else
+                            registers[0xF] = 1;
+
+                        registers[X] = (byte) (registers[Y] - registers[X]);
+                        registers[X] &= 0xFF;
+                        programCounter += 2;
+
+                        break;
+
                     default:
                         System.err.println(String.format("0x%04x: unknown opcode", (int) opcode));
                 }
                 break;
 
             case 0x9000: // 0x9XY0: Skips the next instruction if VX doesn't equal VY.
-                System.out.println(String.format("0x%04x: skips the next instruction if value of register[%d] (%d) equals value of register[%d] (%d)", (int) opcode, (int) X, registers[X] , (int) Y, registers[Y]));
+                System.out.println(String.format("0x%04x: skips the next instruction if value of register[%d] (%d) doesn't equal value of register[%d] (%d)", (int) opcode, (int) X, registers[X] , (int) Y, registers[Y]));
 
                 if (registers[X] != registers[Y])
                     programCounter += 4;

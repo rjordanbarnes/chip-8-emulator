@@ -44,7 +44,7 @@ public class Main extends Application {
         setupInput(chip8System);
 
         try {
-            chip8System.loadGame("./GAMES/wall");
+            chip8System.loadGame("./GAMES/vbrix");
         } catch (IOException e) {
             System.err.println("Caught IOException: " + e.getMessage());
         }
