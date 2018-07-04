@@ -18,8 +18,8 @@ import java.nio.ByteBuffer;
 public class Main extends Application {
     private final int WIDTH = 512;
     private final int HEIGHT = 256;
-    private final int CYCLES_PER_FRAME = 1;
-    private final int FRAMES_PER_SECOND = 1;
+    private final int CYCLES_PER_FRAME = 7;
+    private final int FRAMES_PER_SECOND = 60;
     private final int CYCLES_PER_SECOND = CYCLES_PER_FRAME * FRAMES_PER_SECOND;
 
     private final WritableImage SCREEN = new WritableImage(WIDTH, HEIGHT);

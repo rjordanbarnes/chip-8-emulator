@@ -254,6 +254,16 @@ public class Chip8System {
                 }
                 break;
 
+            case 0x9000: // 0x9XY0: Skips the next instruction if VX doesn't equal VY.
+                System.out.println(String.format("0x%04x: skips the next instruction if value of register[%d] (%d) equals value of register[%d] (%d)", (int) opcode, (int) X, registers[X] , (int) Y, registers[Y]));
+
+                if (registers[X] != registers[Y])
+                    programCounter += 4;
+                else
+                    programCounter += 2;
+
+                break;
+
             case 0xA000: // 0xANNN: Sets I to the address NNN.
                 System.out.println(String.format("0x%04x: sets instruction pointer to 0x%04x", (int) opcode, opcode & 0x0FFF));
 
@@ -380,7 +390,18 @@ public class Chip8System {
                         programCounter += 2;
                         break;
 
-                    case 0x0065: // 0xFX65: Fills V0 to VX (including VX) with values from memory starting at address I.
+                    case 0x0055: // 0xFX55: Stores V0 to VX (including VX) in memory starting at address I. I is increased by 1 for each value written.
+                        System.out.println(String.format("0x%04x: stores register[0] to register[%d] starting at memory[indexRegister]", (int) opcode, (short)X));
+
+                        for (int i = 0; i <= X; i++) {
+                            memory[indexRegister + i] = registers[i];
+                        }
+
+                        indexRegister = (char) ((indexRegister + X + 1) & 0xFFFF);
+                        programCounter += 2;
+                        break;
+
+                    case 0x0065: // 0xFX65: Fills V0 to VX (including VX) with values from memory starting at address I. I is increased by 1 for each value written.
                         System.out.println(String.format("0x%04x: fills register[0] to register[%d] with values starting at memory[indexRegister]", (int) opcode, (short)X));
 
                         for (int i = 0; i <= X; i++) {
