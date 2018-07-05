@@ -18,7 +18,7 @@ import java.nio.ByteBuffer;
 public class Main extends Application {
     private final int SCREEN_WIDTH = 512;
     private final int SCREEN_HEIGHT = 256;
-    private final int CYCLES_PER_FRAME = 1;
+    private final int CYCLES_PER_FRAME = 7;
     private final int FRAMES_PER_SECOND = 60;
     private final int CYCLES_PER_SECOND = CYCLES_PER_FRAME * FRAMES_PER_SECOND;
 
@@ -45,7 +45,7 @@ public class Main extends Application {
         setupInput(chip8System);
 
         try {
-            chip8System.loadGame("./GAMES/bc_test");
+            chip8System.loadGame("./GAMES/pong");
         } catch (IOException e) {
             System.err.println("Caught IOException: " + e.getMessage());
         }

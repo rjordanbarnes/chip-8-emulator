@@ -16,13 +16,13 @@ public class Chip8System {
     // Data structures
     private byte[] memory = new byte[4096];
     private byte[] registers = new byte[16];
-    private char[] stack = new char[16];
+    private short[] stack = new short[16];
 
     // System state trackers
-    private char opcode;
-    private char indexRegister = 0;
-    private char programCounter = 0x200;
-    private char stackPointer = 0; // Points to the next empty index of the stack.
+    private short opcode;
+    private short indexRegister = 0;
+    private short programCounter = 0x200;
+    private short stackPointer = 0; // Points to the next empty index of the stack.
 
     // Timers
     private byte delay_timer = 60;
@@ -135,10 +135,10 @@ public class Chip8System {
     // Emulates a single cycle of the Chip8 CPU
     public void emulateCycle() {
         // Fetch Opcode
-        opcode = (char)((memory[programCounter] << 8) | (memory[programCounter + 1] & 0x00FF));
+        opcode = (short)((memory[programCounter] << 8) | (memory[programCounter + 1] & 0x00FF));
 
-        char X = (char) ((opcode & 0x0F00) >>> 8);
-        char Y = (char) ((opcode & 0x00F0) >>> 4);
+        short X = (short) ((opcode & 0x0F00) >>> 8);
+        short Y = (short) ((opcode & 0x00F0) >>> 4);
 
         // Decode Opcode
         switch (opcode & 0xF000) {
@@ -172,7 +172,7 @@ public class Chip8System {
             case 0x1000: // 0x1NNN: Jumps to address NNN.
                 System.out.println(String.format("0x%04x: jumps to address 0x%04x", (int) opcode,  opcode & 0x0FFF));
 
-                programCounter = (char) (opcode & 0x0FFF);
+                programCounter = (short) (opcode & 0x0FFF);
                 break;
 
             case 0x2000: // 0x2NNN: Calls subroutine at NNN.
@@ -181,7 +181,7 @@ public class Chip8System {
                 stack[stackPointer] = programCounter;
                 stackPointer++;
 
-                programCounter = (char) (opcode & 0x0FFF);
+                programCounter = (short) (opcode & 0x0FFF);
                 break;
 
             case 0x3000: // 0x3XNN: Skips the next instruction if VX equals NN.
@@ -315,6 +315,17 @@ public class Chip8System {
 
                         break;
 
+                    case 0x000E: // 0x8XYE: Shifts VY left by one and copies the result to VX. VF is set to the value of the most significant bit of VY before the shift.
+                        System.out.println(String.format("0x%04x: sets register[%d] and register[%d] to the value of register[%d] << 1 (0x%02x)", (int) opcode, (short)X, (short)Y, (short)Y, registers[Y] << 1));
+
+                        registers[0xF] = (byte) (registers[Y] >>> 7); // Sets VF to MSB of VY
+
+                        registers[Y] = (byte) (registers[Y] << 1);
+                        registers[X] = registers[Y];
+
+                        programCounter += 2;
+                        break;
+
                     default:
                         System.err.println(String.format("0x%04x: unknown opcode", (int) opcode));
                 }
@@ -333,9 +344,16 @@ public class Chip8System {
             case 0xA000: // 0xANNN: Sets I to the address NNN.
                 System.out.println(String.format("0x%04x: sets instruction pointer to 0x%04x", (int) opcode, opcode & 0x0FFF));
 
-                indexRegister = (char) (opcode & 0x0FFF);
+                indexRegister = (short) (opcode & 0x0FFF);
 
                 programCounter += 2;
+                break;
+
+            case 0xB000: // 0xBNNN: Jumps to the address NNN plus V0.
+                System.out.println(String.format("0x%04x: jumps to address 0x%04x + register[0] (%d)", (int) opcode, opcode & 0x0FFF, (opcode & 0x0FFF) + registers[0]));
+
+                programCounter = (short)((opcode & 0x0FFF) + registers[0]);
+
                 break;
 
             case 0xC000: // 0xCXNN: Sets VX to the result of a bitwise and operation on a random number (Typically: 0 to 255) and NN.
@@ -451,7 +469,7 @@ public class Chip8System {
                     case 0x0029: // 0xFX29: Sets I to the location of the sprite for the character in VX.
                         System.out.println(String.format("0x%04x: sets the instruction pointer to the sprite located in register[%d] (0x%02x)", (int) opcode, (short)X, registers[X]));
 
-                        indexRegister = (char) (registers[X] * 5); // Sprites 5 bytes long
+                        indexRegister = (short) (registers[X] * 5); // Sprites 5 bytes long
 
                         programCounter += 2;
                         break;
@@ -473,7 +491,7 @@ public class Chip8System {
                             memory[indexRegister + i] = registers[i];
                         }
 
-                        indexRegister = (char) ((indexRegister + X + 1) & 0xFFFF);
+                        indexRegister = (short) ((indexRegister + X + 1) & 0xFFFF);
                         programCounter += 2;
                         break;
 
@@ -484,7 +502,7 @@ public class Chip8System {
                             registers[i] = (byte) (memory[indexRegister + i] & 0xFF);
                         }
 
-                        indexRegister = (char) ((indexRegister + X + 1) & 0xFFFF);
+                        indexRegister = (short) ((indexRegister + X + 1) & 0xFFFF);
                         programCounter+= 2;
                         break;
 
