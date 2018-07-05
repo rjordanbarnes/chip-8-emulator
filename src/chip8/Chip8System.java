@@ -7,27 +7,32 @@ import java.nio.file.Paths;
 import java.util.Random;
 
 public class Chip8System {
-    private final int WIDTH = 512;
-    private final int HEIGHT = 256;
-
-    private char opcode;
+    // Screen
+    private int screenWidth;
+    private int screenHeight;
+    private byte[] gfx;
     private Boolean drawFlag = false;
 
+    // Data structures
     private byte[] memory = new byte[4096];
     private byte[] registers = new byte[16];
     private char[] stack = new char[16];
-    private byte[] gfx = new byte[WIDTH * HEIGHT];
 
+    // System state trackers
+    private char opcode;
     private char indexRegister = 0;
     private char programCounter = 0x200;
     private char stackPointer = 0; // Points to the next empty index of the stack.
 
+    // Timers
     private byte delay_timer = 60;
     private byte sound_timer = 60;
 
+    // Keyboard
     private boolean[] keys;
     private byte lastKeyPressed = -1;
 
+    // One font character is 5 pixels tall, each pixel represented by a byte.
     private final int[] CHIP8_FONTSET =
             {
                     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -48,44 +53,55 @@ public class Chip8System {
                     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
             };
 
-    public Chip8System() {
-        // Load font set
+    public Chip8System(int screenWidth, int screenHeight) {
+
+        this.screenWidth = screenWidth;
+        this.screenHeight = screenHeight;
+        gfx = new byte[screenWidth * screenHeight];
+
+        // Loads the Chip8 fontset at the start of memory
         for (int i = 0; i < CHIP8_FONTSET.length; i++) {
             memory[i] = (byte) CHIP8_FONTSET[i];
         }
     }
 
+    // Loads the supplied game into memory starting at address 0x200
     public void loadGame(String game) throws IOException {
         Path path = Paths.get(game);
 
         byte[] fileContents = Files.readAllBytes(path);
 
-        // Load game into memory starting at 0x200
         for (int i = 0; i < fileContents.length; i++) {
             memory[i + 0x200] = fileContents[i];
         }
     }
 
+    // Returns draw flag (whether the screen should be redrawn this loop)
     public Boolean getDrawFlag() {
         return drawFlag;
     }
 
+    // Sets the draw flag
     public void setDrawFlag(Boolean drawFlag) {
         this.drawFlag = drawFlag;
     }
 
+    // Returns the gfx array which represents the screen
     public byte[] getGFX() {
         return gfx;
     }
 
+    // Updates the state of all keys on the keypad.
     public void setKeys(boolean[] keys) {
         this.keys = keys;
     }
 
+    // Updates the last key pressed
     public void setLastKeyPressed(byte key) {
         lastKeyPressed = key;
     }
 
+    // Returns how many keys are currently pressed down.
     public int getNumberOfKeysPressed() {
         int keysPressed = 0;
 
@@ -97,8 +113,9 @@ public class Chip8System {
         return keysPressed;
     }
 
+    // Returns the pixel state at coordinate (x, y)
     public int getPixel(int x, int y) {
-        return gfx[(x + WIDTH * y) % gfx.length];
+        return gfx[(x + screenWidth * y) % gfx.length];
     }
 
     // Draws an 8 x 8 box at coordinate (x, y)
@@ -112,9 +129,10 @@ public class Chip8System {
 
     // Draws a single pixel at coordinate (x, y)
     public void drawPixel(int x, int y) {
-        gfx[(x + WIDTH * y)  % gfx.length] ^= 1;
+        gfx[(x + screenWidth * y)  % gfx.length] ^= 1; // % is used to allow wraparound on games like Pong
     }
 
+    // Emulates a single cycle of the Chip8 CPU
     public void emulateCycle() {
         // Fetch Opcode
         opcode = (char)((memory[programCounter] << 8) | (memory[programCounter + 1] & 0x00FF));
@@ -485,7 +503,7 @@ public class Chip8System {
 
         if (sound_timer > 0) {
             if (sound_timer == 1)
-                System.out.println("BEEP!");
+                System.out.println("BEEP!"); // System beeps when sound timer counts down to 1
 
             sound_timer--;
         }
