@@ -215,7 +215,7 @@ public class Chip8System {
                 break;
 
             case 0x6000: // 0x6XNN: Sets VX to NN.
-                System.out.println(String.format("0x%04x: sets register[%d] to %d", (int) opcode, (short) X, opcode & 0x00FF));
+                System.out.println(String.format("0x%04x: sets register[%d] to %d", (int) opcode, X, opcode & 0x00FF));
 
                 registers[X] = (byte) (opcode & 0x00FF);
 
@@ -224,7 +224,7 @@ public class Chip8System {
                 break;
 
             case 0x7000: // 0x7XNN: Adds NN to VX.
-                System.out.println(String.format("0x%04x: adds %d to register[%d]", (int) opcode, opcode & 0x00FF, (short) X));
+                System.out.println(String.format("0x%04x: adds %d to register[%d]", (int) opcode, opcode & 0x00FF, X));
 
                 registers[X] += (opcode & 0x00FF);
 
@@ -234,7 +234,7 @@ public class Chip8System {
             case 0x8000:
                 switch (opcode & 0x000F) {
                     case 0x0000: // 0x8XY0: Sets VX to the value of VY.
-                        System.out.println(String.format("0x%04x: sets register[%d] to value of register[%d] (%d)", (int) opcode, (short)X, (short)Y, registers[Y]));
+                        System.out.println(String.format("0x%04x: sets register[%d] to value of register[%d] (%d)", (int) opcode, X, Y, registers[Y]));
 
                         registers[X] = registers[Y];
 
@@ -242,7 +242,7 @@ public class Chip8System {
                         break;
 
                     case 0x0001: // 0x8XY1: Sets VX to VX or VY.
-                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] | register[%d] (%d)", (int) opcode, (short)X, (short)X, (short)Y, registers[X] | registers[Y]));
+                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] | register[%d] (%d)", (int) opcode, X, X, Y, registers[X] | registers[Y]));
 
                         registers[X] |= registers[Y];
 
@@ -250,7 +250,7 @@ public class Chip8System {
                         break;
 
                     case 0x0002: // 0x8XY2: Sets VX to VX and VY.
-                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] & register[%d] (%d)", (int) opcode, (short)X, (short)X, (short)Y, registers[X] & registers[Y]));
+                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] & register[%d] (%d)", (int) opcode, X, X, Y, registers[X] & registers[Y]));
 
                         registers[X] &= registers[Y];
 
@@ -258,7 +258,7 @@ public class Chip8System {
                         break;
 
                     case 0x0003: // 0x8XY3: Sets VX to VX xor VY.
-                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] ^ register[%d] (%d)", (int) opcode, (short)X, (short)X, (short)Y, registers[X] ^ registers[Y]));
+                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] ^ register[%d] (%d)", (int) opcode, X, X, Y, registers[X] ^ registers[Y]));
 
                         registers[X] ^= registers[Y];
 
@@ -266,7 +266,7 @@ public class Chip8System {
                         break;
 
                     case 0x0004: // 0x8XY4: Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't.
-                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] + register[%d] (%d)", (int) opcode, (short)X, (short)X, (short)Y, registers[X] + registers[Y]));
+                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] + register[%d] (%d)", (int) opcode, X, X, Y, registers[X] + registers[Y]));
 
                         if (registers[Y] + registers[X] > 0xFF)
                             registers[0xF] = 1; // carry
@@ -279,7 +279,7 @@ public class Chip8System {
                         break;
 
                     case 0x0005: // 0x8XY5: VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
-                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] - register[%d] (%d)", (int) opcode, (short)X, (short)X, (short)Y, registers[X] - registers[Y]));
+                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] - register[%d] (%d)", (int) opcode, X, X, Y, registers[X] - registers[Y]));
 
                         if (registers[X] < registers[Y])
                             registers[0xF] = 0; // borrow
@@ -292,7 +292,7 @@ public class Chip8System {
                         break;
 
                     case 0x0006: // 0x8XY6: Shifts VY right by one and stores the result to VX (VY remains unchanged). VF is set to the value of the least significant bit of VY before the shift.
-                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] >>> 1 (0x%02x)", (int) opcode, (short)X, (short)Y, registers[Y] >>> 1));
+                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] >>> 1 (0x%02x)", (int) opcode, X, Y, registers[Y] >>> 1));
 
                         registers[0xF] = (byte) (registers[Y] & 0x1); // Sets VF to LSB of VY
 
@@ -302,7 +302,7 @@ public class Chip8System {
                         break;
 
                     case 0x0007: // 0x8XY7: Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
-                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] - register[%d] (%d)", (int) opcode, (short)X, (short)Y, (short)X, registers[Y] - registers[X]));
+                        System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] - register[%d] (%d)", (int) opcode, X, Y, X, registers[Y] - registers[X]));
 
                         if (registers[X] > registers[Y])
                             registers[0xF] = 0; // borrow
@@ -316,7 +316,7 @@ public class Chip8System {
                         break;
 
                     case 0x000E: // 0x8XYE: Shifts VY left by one and copies the result to VX. VF is set to the value of the most significant bit of VY before the shift.
-                        System.out.println(String.format("0x%04x: sets register[%d] and register[%d] to the value of register[%d] << 1 (0x%02x)", (int) opcode, (short)X, (short)Y, (short)Y, registers[Y] << 1));
+                        System.out.println(String.format("0x%04x: sets register[%d] and register[%d] to the value of register[%d] << 1 (0x%02x)", (int) opcode, X, Y, Y, registers[Y] << 1));
 
                         registers[0xF] = (byte) (registers[Y] >>> 7); // Sets VF to MSB of VY
 
@@ -357,7 +357,7 @@ public class Chip8System {
                 break;
 
             case 0xC000: // 0xCXNN: Sets VX to the result of a bitwise and operation on a random number (Typically: 0 to 255) and NN.
-                System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] & (random number)", (int) opcode, (short)X, (short)X));
+                System.out.println(String.format("0x%04x: sets register[%d] to the value of register[%d] & (random number)", (int) opcode, X, X));
 
                 Random r = new Random();
 
@@ -398,7 +398,7 @@ public class Chip8System {
             case 0xE000:
                 switch(opcode & 0x00FF) {
                     case 0x009E: // 0xEX9E: Skips the next instruction if the key stored in VX is pressed.
-                        System.out.println(String.format("0x%04x: skips the next instruction if the key in register[%d] is pressed", (int) opcode, (short)X));
+                        System.out.println(String.format("0x%04x: skips the next instruction if the key in register[%d] is pressed", (int) opcode, X));
 
                         if (keys[registers[X]])
                             programCounter += 4;
@@ -408,7 +408,7 @@ public class Chip8System {
                         break;
 
                     case 0x00A1: // 0xEXA1: Skips the next instruction if the key stored in VX isn't pressed.
-                        System.out.println(String.format("0x%04x: skips the next instruction if the key in register[%d] isn't pressed", (int) opcode, (short)X));
+                        System.out.println(String.format("0x%04x: skips the next instruction if the key in register[%d] isn't pressed", (int) opcode, X));
 
                         if (!keys[registers[X]])
                             programCounter += 4;
@@ -425,7 +425,7 @@ public class Chip8System {
             case 0xF000:
                 switch (opcode & 0x00FF) {
                     case 0x0007: // 0xFX07: Sets VX to the value of the delay timer.
-                        System.out.println(String.format("0x%04x: sets register[%d] to the value of the delay timer (%d)", (int) opcode, (short)X, delay_timer));
+                        System.out.println(String.format("0x%04x: sets register[%d] to the value of the delay timer (%d)", (int) opcode, X, delay_timer));
 
                         registers[X] = (byte) (delay_timer & 0xFF);
 
@@ -433,7 +433,7 @@ public class Chip8System {
                         break;
 
                     case 0x000A: //0xFX0A: A key press is awaited, and then stored in VX.
-                        System.out.println(String.format("0x%04x: waits for a key press and stores it in register[%d]", (int) opcode, (short)X));
+                        System.out.println(String.format("0x%04x: waits for a key press and stores it in register[%d]", (int) opcode, X));
 
                         if (getNumberOfKeysPressed() > 0) {
                             registers[X] = lastKeyPressed;
@@ -443,7 +443,7 @@ public class Chip8System {
                         break;
 
                     case 0x0015: // 0xFX15: Sets the delay timer to VX.
-                        System.out.println(String.format("0x%04x: sets the delay timer to the value of register[%d] (%d)", (int) opcode, (short)X, registers[X]));
+                        System.out.println(String.format("0x%04x: sets the delay timer to the value of register[%d] (%d)", (int) opcode, X, registers[X]));
 
                         delay_timer = registers[X];
 
@@ -451,7 +451,7 @@ public class Chip8System {
                         break;
 
                     case 0x0018: // 0xFX18: Sets the sound timer to VX.
-                        System.out.println(String.format("0x%04x: sets the sound timer to the value of register[%d] (%d)", (int) opcode, (short)X, registers[X]));
+                        System.out.println(String.format("0x%04x: sets the sound timer to the value of register[%d] (%d)", (int) opcode, X, registers[X]));
 
                         sound_timer = registers[X];
 
@@ -459,7 +459,7 @@ public class Chip8System {
                         break;
 
                     case 0x001E: // 0xFX1E: Adds VX to I.
-                        System.out.println(String.format("0x%04x: adds the value of register[%d] (%d) to the instruction pointer", (int) opcode, (short)X, registers[X]));
+                        System.out.println(String.format("0x%04x: adds the value of register[%d] (%d) to the instruction pointer", (int) opcode, X, registers[X]));
 
                         indexRegister += registers[X];
 
@@ -467,7 +467,7 @@ public class Chip8System {
                         break;
 
                     case 0x0029: // 0xFX29: Sets I to the location of the sprite for the character in VX.
-                        System.out.println(String.format("0x%04x: sets the instruction pointer to the sprite located in register[%d] (0x%02x)", (int) opcode, (short)X, registers[X]));
+                        System.out.println(String.format("0x%04x: sets the instruction pointer to the sprite located in register[%d] (0x%02x)", (int) opcode, X, registers[X]));
 
                         indexRegister = (short) (registers[X] * 5); // Sprites 5 bytes long
 
@@ -475,7 +475,7 @@ public class Chip8System {
                         break;
 
                     case 0x0033: // 0xFX33: Stores the binary-coded decimal representation of VX
-                        System.out.println(String.format("0x%04x: stores the binary-coded decimal representation of register[%d] (%d)", (int) opcode, (short)X, registers[X]));
+                        System.out.println(String.format("0x%04x: stores the binary-coded decimal representation of register[%d] (%d)", (int) opcode, X, registers[X]));
 
                         memory[indexRegister] = (byte) (registers[X] / 100);
                         memory[indexRegister + 1] = (byte) ((registers[X] / 10) % 10);
@@ -485,7 +485,7 @@ public class Chip8System {
                         break;
 
                     case 0x0055: // 0xFX55: Stores V0 to VX (including VX) in memory starting at address I. I is increased by 1 for each value written.
-                        System.out.println(String.format("0x%04x: stores register[0] to register[%d] starting at memory[indexRegister]", (int) opcode, (short)X));
+                        System.out.println(String.format("0x%04x: stores register[0] to register[%d] starting at memory[indexRegister]", (int) opcode, X));
 
                         for (int i = 0; i <= X; i++) {
                             memory[indexRegister + i] = registers[i];
@@ -496,7 +496,7 @@ public class Chip8System {
                         break;
 
                     case 0x0065: // 0xFX65: Fills V0 to VX (including VX) with values from memory starting at address I. I is increased by 1 for each value written.
-                        System.out.println(String.format("0x%04x: fills register[0] to register[%d] with values starting at memory[indexRegister]", (int) opcode, (short)X));
+                        System.out.println(String.format("0x%04x: fills register[0] to register[%d] with values starting at memory[indexRegister]", (int) opcode, X));
 
                         for (int i = 0; i <= X; i++) {
                             registers[i] = (byte) (memory[indexRegister + i] & 0xFF);
