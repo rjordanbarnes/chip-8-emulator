@@ -7,16 +7,12 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelFormat;
-import javafx.scene.image.WritableImage;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 public class Main extends Application {
     private final int SCREEN_WIDTH = 64;
@@ -44,7 +40,7 @@ public class Main extends Application {
         setupInput(chip8System);
 
         try {
-            chip8System.loadGame("./GAMES/invaders");
+            chip8System.loadGame("./GAMES/pong");
         } catch (IOException e) {
             System.err.println("Caught IOException: " + e.getMessage());
         }
