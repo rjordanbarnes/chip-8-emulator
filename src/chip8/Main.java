@@ -5,10 +5,13 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -18,18 +21,14 @@ import java.nio.ByteBuffer;
 public class Main extends Application {
     private final int SCREEN_WIDTH = 64;
     private final int SCREEN_HEIGHT = 32;
+    private final int SCALE = 8;
     private final int CYCLES_PER_FRAME = 7;
     private final int FRAMES_PER_SECOND = 60;
     private final int CYCLES_PER_SECOND = CYCLES_PER_FRAME * FRAMES_PER_SECOND;
 
-    private final WritableImage SCREEN = new WritableImage(SCREEN_WIDTH, SCREEN_HEIGHT);
     private Scene mainScene;
+    private GraphicsContext gc;
     private boolean[] keys = new boolean[16];
-
-    // Defines the colors used for the screen pixel states (0 or 1)
-    private final int BLACK = 0xFF000000;
-    private final int WHITE = 0xFFFFFFFF;
-    private final PixelFormat<ByteBuffer> PIXELFORMAT = PixelFormat.createByteIndexedInstance(new int[] {BLACK, WHITE});
 
     @Override
     public void start(Stage mainStage) {
@@ -112,18 +111,32 @@ public class Main extends Application {
 
     // Sets up the javafx graphics
     private void setupGraphics(Stage mainStage) {
-        ImageView imageView = new ImageView(SCREEN);
-        StackPane root = new StackPane(imageView);
-        mainScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
+        StackPane root = new StackPane();
+        mainScene = new Scene(root, SCREEN_WIDTH * SCALE, SCREEN_HEIGHT * SCALE);
+        Canvas canvas = new Canvas(SCREEN_WIDTH * SCALE, SCREEN_HEIGHT * SCALE);
+        gc = canvas.getGraphicsContext2D();
+        root.getChildren().add(canvas);
         mainStage.setScene(mainScene);
         mainStage.setTitle("CHIP-8");
         mainStage.setResizable(false);
         mainStage.show();
     }
 
-    // Draws the screen using the pixels bytestream in the given chip8system
+    // Scales and draws the screen using the pixels in the given chip8system
     private void drawGraphics(Chip8System chip8System) {
-        SCREEN.getPixelWriter().setPixels(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, PIXELFORMAT, chip8System.getPixels(), 0, SCREEN_WIDTH);
+
+        for (int x = 0; x < SCREEN_WIDTH; x++) {
+            for (int y = 0; y < SCREEN_HEIGHT; y++) {
+                if (chip8System.getPixel(x, y) == 1) {
+                    gc.setFill(Color.WHITE);
+                } else {
+                    gc.setFill(Color.BLACK);
+                }
+
+                gc.fillRect(x * SCALE, y * SCALE, SCALE, SCALE);
+            }
+        }
+
         chip8System.setDrawFlag(false);
     }
 
