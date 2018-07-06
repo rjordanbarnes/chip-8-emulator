@@ -10,7 +10,7 @@ public class Chip8System {
     // Screen
     private int screenWidth;
     private int screenHeight;
-    private byte[] gfx;
+    private byte[] pixels;
     private Boolean drawFlag = false;
 
     // Data structures
@@ -57,7 +57,7 @@ public class Chip8System {
 
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
-        gfx = new byte[screenWidth * screenHeight];
+        pixels = new byte[screenWidth * screenHeight];
 
         // Loads the Chip8 fontset at the start of memory
         for (int i = 0; i < CHIP8_FONTSET.length; i++) {
@@ -86,9 +86,9 @@ public class Chip8System {
         this.drawFlag = drawFlag;
     }
 
-    // Returns the gfx array which represents the screen
-    public byte[] getGFX() {
-        return gfx;
+    // Returns the pixels array which represents the screen
+    public byte[] getPixels() {
+        return pixels;
     }
 
     // Updates the state of all keys on the keypad.
@@ -115,21 +115,12 @@ public class Chip8System {
 
     // Returns the pixel state at coordinate (x, y)
     public int getPixel(int x, int y) {
-        return gfx[(x + screenWidth * y) % gfx.length];
-    }
-
-    // Draws an 8 x 8 box at coordinate (x, y)
-    public void drawBox(int x, int y) {
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                drawPixel(x + i, y + j);
-            }
-        }
+        return pixels[(x + screenWidth * y) % pixels.length];
     }
 
     // Draws a single pixel at coordinate (x, y)
     public void drawPixel(int x, int y) {
-        gfx[(x + screenWidth * y)  % gfx.length] ^= 1; // % is used to allow wraparound on games like Pong
+        pixels[(x + screenWidth * y)  % pixels.length] ^= 1; // % is used to allow wraparound on games like Pong
     }
 
     // Emulates a single cycle of the Chip8 CPU
@@ -148,8 +139,8 @@ public class Chip8System {
                     case 0x0000: // 0x00E0: Clears screen
                         System.out.println(String.format("0x%04x: clears screen", (int) opcode));
 
-                        for (int i = 0; i < gfx.length; i++) {
-                            gfx[i] = 0;
+                        for (int i = 0; i < pixels.length; i++) {
+                            pixels[i] = 0;
                         }
 
                         programCounter += 2;
@@ -366,26 +357,26 @@ public class Chip8System {
                 break;
 
             case 0xD000: // 0xDXYN: Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels.
-                System.out.println(String.format("0x%04x: draws a sprite at coordinate (%d, %d) that has a width of 8 pixels and a height of %d pixels", (int) opcode, registers[X], registers[Y], (opcode & 0x000F) * 8));
+                System.out.println(String.format("0x%04x: draws a sprite at coordinate (%d, %d) that has a width of 8 pixels and a height of %d pixels", (int) opcode, registers[X], registers[Y], (opcode & 0x000F)));
 
-                int xCoord = registers[X] * 8;
-                int yCoord = registers[Y] * 8;
-                int verticalBoxes = opcode & 0x000F;
+                int xCoord = registers[X];
+                int yCoord = registers[Y];
+                int height = opcode & 0x000F;
 
                 registers[0xF] = 0; // Clear carry
 
-                // For each vertical box needed, draw boxes horizontally if sprite requires
-                for (int i = 0; i < verticalBoxes; i++) {
-                    int scaledYCoord = yCoord + 8 * i;
+                // For each vertical pixel needed, draw pixels horizontally if sprite requires
+                for (int i = 0; i < height; i++) {
+                    int nextYCoord = yCoord + i;
 
-                    for (int j = 0; j < 8; j++) { // For each horizontal box
-                        int scaledXCoord = xCoord + 8 * j;
+                    for (int j = 0; j < 8; j++) { // For each horizontal pixel
+                        int nextXCoord = xCoord + j;
 
                         if ((memory[indexRegister + i] & (0x80 >>> j)) != 0) { // If sprite says to draw this box, draw it
-                            if (getPixel(scaledXCoord, scaledYCoord) == 1) // Collision
+                            if (getPixel(nextXCoord, nextYCoord) == 1) // Collision
                                 registers[0xF] = 1;
 
-                            drawBox(scaledXCoord, scaledYCoord);
+                            drawPixel(nextXCoord, nextYCoord);
                         }
                     }
                 }

@@ -16,8 +16,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class Main extends Application {
-    private final int SCREEN_WIDTH = 512;
-    private final int SCREEN_HEIGHT = 256;
+    private final int SCREEN_WIDTH = 64;
+    private final int SCREEN_HEIGHT = 32;
     private final int CYCLES_PER_FRAME = 7;
     private final int FRAMES_PER_SECOND = 60;
     private final int CYCLES_PER_SECOND = CYCLES_PER_FRAME * FRAMES_PER_SECOND;
@@ -45,7 +45,7 @@ public class Main extends Application {
         setupInput(chip8System);
 
         try {
-            chip8System.loadGame("./GAMES/pong");
+            chip8System.loadGame("./GAMES/invaders");
         } catch (IOException e) {
             System.err.println("Caught IOException: " + e.getMessage());
         }
@@ -121,9 +121,9 @@ public class Main extends Application {
         mainStage.show();
     }
 
-    // Draws the screen using the gfx bytestream in the given chip8system
+    // Draws the screen using the pixels bytestream in the given chip8system
     private void drawGraphics(Chip8System chip8System) {
-        SCREEN.getPixelWriter().setPixels(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, PIXELFORMAT, chip8System.getGFX(), 0, SCREEN_WIDTH);
+        SCREEN.getPixelWriter().setPixels(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, PIXELFORMAT, chip8System.getPixels(), 0, SCREEN_WIDTH);
         chip8System.setDrawFlag(false);
     }
 
