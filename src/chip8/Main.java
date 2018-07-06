@@ -17,13 +17,16 @@ import java.io.IOException;
 public class Main extends Application {
     private final int SCREEN_WIDTH = 64;
     private final int SCREEN_HEIGHT = 32;
-    private final int SCALE = 8;
+    private final int SCALE = 16;
     private final int CYCLES_PER_FRAME = 7;
     private final int FRAMES_PER_SECOND = 60;
     private final int CYCLES_PER_SECOND = CYCLES_PER_FRAME * FRAMES_PER_SECOND;
 
     private Scene mainScene;
     private GraphicsContext gc;
+    private final Color drawColor = Color.WHITE;
+    private final Color backgroundColor = Color.BLACK;
+
     private boolean[] keys = new boolean[16];
 
     @Override
@@ -124,9 +127,9 @@ public class Main extends Application {
         for (int x = 0; x < SCREEN_WIDTH; x++) {
             for (int y = 0; y < SCREEN_HEIGHT; y++) {
                 if (chip8System.getPixel(x, y) == 1) {
-                    gc.setFill(Color.WHITE);
+                    gc.setFill(drawColor);
                 } else {
-                    gc.setFill(Color.BLACK);
+                    gc.setFill(backgroundColor);
                 }
 
                 gc.fillRect(x * SCALE, y * SCALE, SCALE, SCALE);
